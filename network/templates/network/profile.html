@@ -1,0 +1,51 @@
+{% extends 'network/layout.html' %}
+
+{% block title %}
+    {% if request.user.first_name %}
+        Profile - {{request.user.first_name}} 
+    {% else %}
+        Profile - {{ request.user }}
+    {% endif %}
+{% endblock title %}
+
+{% block body %}
+    <div style="margin: 50px;" id="profile">
+        {% if request.user.first_name %}
+            <h1 style="text-align: center;">Welcome {{ request.user.first_name }}! 🎉</h1>
+        {% else %}
+            <h1 style="text-align: center;">Welcome {{ request.user }}! 🎉</h1>
+        {% endif %}
+        <br>
+        {% if request.user.first_name %}
+            First Name: {{request.user.first_name}} <br>
+            Last Name: {{request.user.last_name}}
+        {% else %}
+            <div id="profile">
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <input autofocus class="form-control" type="text" name="firstname" required placeholder="First Name">
+                    </div>
+                    <div class="form-group">
+                        <input autofocus class="form-control" type="text" name="lastname" required placeholder="Last Name">
+                    </div>
+                    <input class="btn btn-primary" type="submit">
+                </form>
+            </div>
+        {% endif %}
+        <br> <br>
+        Followers: {{follower}}
+        Following: {{following}} <br><br>
+        Username: {{request.user.username}} <br>
+        Email: {{request.user.email}} <br><br>
+        Last Login: {{request.user.last_login}} <br>
+        Currently On... <br>
+        {% if request.user_agent.is_pc %}
+            Browser - <strong><em>{{request.user_agent.browser.family}}</em></strong> Device - <strong><em>Desktop</em></strong> OS - <strong><em>{{request.user_agent.os.family}} {{request.user_agent.os.version_string}}</em></strong>
+        {% else %}
+            Browser - <strong><em>{{request.user_agent.browser.family}}</em></strong> Device - <strong><em>{{request.user_agent.device.family}}</em></strong> OS - <strong><em>{{request.user_agent.os.family}} {{request.user_agent.os.version_string}}</em></strong>
+        {% endif %}
+        <br><br>
+        Date Joined: {{request.user.date_joined}} <br>
+    </div>
+{% endblock body %}

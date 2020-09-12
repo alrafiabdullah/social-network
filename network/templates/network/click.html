@@ -1,0 +1,78 @@
+{% extends 'network/layout.html' %}
+
+{% block title %}
+    Profile
+{% endblock title %}
+
+
+{% block body %}
+    <div style="margin: 50px;">
+    {% csrf_token %}
+        {% ifequal requested.username request.user.username  %}
+            <h3 style="text-align: center;">🎊 Welcome to your profile! 🎉</h3><br>
+        {% else %}
+            <h3 style="text-align: center;">Welcome to <strong style="color: #007BFF;"><em>{{ requested.username }}</em></strong>'s profile, <strong style="color: #007BFF;"><em>{{ request.user.username }}</em></strong>! 🎉</h3><br>
+        {% endifequal %}
+
+        Followers: {{follower}}
+        Following: {{following}}
+        <br>
+        {% ifequal requested.username request.user.username %}
+        {%else%}
+        {% if not followed %}
+            <form action="{% url 'follow' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="id" value="{{requested.id}}">
+                <input class="btn btn-success" type="submit" value="Follow">
+            </form>
+        {% elif followed %}
+            <form action="{% url 'unfollow' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="id" value="{{requested.id}}">
+                <input class="btn btn-danger" type="submit" value="Unfollow">
+            </form>
+        {% endif %}
+        {% endifequal %}
+        <br>
+        {% for post in posts.object_list %}
+            <div id="first" style="border: 2px solid #F8F9FA; padding: 2%;">
+                <h6>{{ post.text_field }}</h6>
+                <p>{{ post.post_time }}</p>
+                {% if post.is_edited %}
+                    <p>Edited: <strong><em>Yes</em></strong></p>
+                {% else %}
+                    <p>Edited: <strong><em>No</em></strong></p>
+                {% endif %}
+                <div id="like-show">
+                    <div class="hidden" id="{{post.id}}" ><button class="btn btn-info btn-sm">Total Like</button></div>
+                </div>
+            </div>
+        {% endfor %}
+
+        <nav aria-label="...">
+                <ul class="pagination">
+                    <li class="page-item" {% if not previous_page_url %} style="display: none;" {% endif %}>
+                    <a class="page-link" href="{{ previous_page_url }}" tabindex="-1" aria-disabled="true">Previous</a>
+                    </li>
+                    
+                    {% for n in posts.page_range %}
+                        {% if posts.number == n %}
+                            <li class="page-item active" aria-current="page">
+                                <a class="page-link" href="?page={{ n }}">{{n}}<span class="sr-only">(current)</span></a>
+                            </li>                        
+                        {% elif n > posts.number and n < posts.number %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ n }}">1</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+
+                    <li class="page-item" {% if not next_page_url %} style="display: none;" {% endif %}">
+                    <a class="page-link" href="{{ next_page_url }}">Next</a>
+                    </li>
+                </ul>
+            </nav>
+
+    </div>
+{% endblock body %}

@@ -1,0 +1,39 @@
+i {
+  margin-right: 3%;
+}
+
+i:hover {
+  cursor: pointer;
+}
+
+.hidden:hover {
+  cursor: pointer;
+}
+
+.comment:hover {
+  cursor: pointer;
+}
+
+.show-like {
+  padding-top: 2%;
+}
+
+.show-comment {
+  border: 2px solid #f8f9fa;
+  padding: 3%;
+}
+
+#profile {
+  border: 2px solid #f8f9fa;
+  padding: 3%;
+}
+
+.button-container form,
+.button-container form div {
+  display: inline;
+}
+
+.button-container button {
+  display: inline;
+  vertical-align: middle;
+}

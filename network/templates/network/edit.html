@@ -1,0 +1,26 @@
+{% extends 'network/layout.html' %}
+
+{% block title %}
+    Edit Post
+{% endblock title %}
+
+{% block body %}
+    {% ifequal post.post_owner request.user %}
+        <div style="margin: 50px;">
+            <h3 style="text-align: center;">Welcome to Edit post!</h3>
+            <form method="POST">
+                    {% csrf_token %}
+                    <div class="form-group shadow-textarea">
+                        <label for="post"><h3>Post</h3></label>
+                        <textarea class="form-control z-depth-1" name="post" rows="5">{{post.text_field}}</textarea><br>
+                        <input class="btn btn-primary" type="submit" value="Update">
+                    </div>
+            </form>
+        </div>
+    {% else %}
+        <div style="text-align:center; margin:50px;">
+            <h3>This is not your post!</h3>
+            <a href="{% url 'index' %}"><button class="btn btn-danger">Go Back</button></a>
+        </div>
+    {% endifequal %}
+{% endblock body %}

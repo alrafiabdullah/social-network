@@ -1,0 +1,165 @@
+{% extends "network/layout.html" %}
+{% load static %}
+{% load custom_tags %}
+
+{% block script %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="{% static 'network/index.js' %}"></script>
+    <script>
+        function likeFunction(i) {
+            let csrf = $("input[name=csrfmiddlewaretoken]").val();
+            let postID = i.id;
+            let newID = `show-${postID}`;
+            let url = `/like`;
+            $.ajax({
+                url: url,
+                type: "post",
+                data: {
+                    post_id: postID,
+                    csrfmiddlewaretoken: csrf,
+                },
+                success: (response) => {
+                    try {
+                        document.querySelector("#wait").remove();
+                    } catch {
+                        
+                    }
+                    const element = document.createElement('div');
+                    element.id = 'wait';
+                    element.innerHTML = `You liked this. 🎉<br>Total Like: ${response.count}`;
+                    document.querySelector(`[id=${CSS.escape(newID)}]`).append(element);
+                }
+            });
+
+        }
+
+        function unlikeFunction(i) {
+            let csrf = $("input[name=csrfmiddlewaretoken]").val();
+            let postID = i.id;
+            let newID = `show-${postID}`;
+            let url = `/unlike`;
+            $.ajax({
+                url: url,
+                type: "post",
+                data: {
+                    post_id: postID,
+                    csrfmiddlewaretoken: csrf,
+                },
+                success: (response) => {
+                    try {
+                        document.querySelector("#wait").remove();
+                    } catch {
+                        
+                    }
+                    const element = document.createElement('div');
+                    element.id = 'wait';
+                    element.innerHTML = `You unliked this. 😞<br>Total Like: ${response.count}`;
+                    document.querySelector(`[id=${CSS.escape(newID)}]`).append(element);
+                }
+            });
+  
+        }
+    </script>
+{% endblock script %}
+
+{% block body %}
+    {% if user.is_authenticated %}
+        <div style="margin: 50px;">
+        {% csrf_token %}
+            
+            <form method="POST">
+                {% csrf_token %}
+                <div class="form-group shadow-textarea">
+                    <label for="post"><h3>Post</h3></label>
+                    <textarea class="form-control z-depth-1" name="post_post" rows="5" required placeholder="How are you feeling today..."></textarea><br>
+                    <input class="btn btn-primary" type="submit" value="Post">
+                </div>
+            </form>
+            <br><br>
+            
+            {% for post in posts.object_list %}
+
+                <div id="first" style="border: 2px solid #F8F9FA; padding: 2%;">
+                    <h3><a href="{% url 'click_profile' post.post_owner.id %}" style="text-decoration:none;">{{ post.post_owner }}</a></h5><br>
+                    {% ifequal post.post_owner request.user %}
+                        <div class="button-container">
+                            <form action="{% url 'edit' post.id %}">
+                                <div>
+                                    <input class="btn btn-primary" type="submit" value="Edit">
+                                </div>
+                            </form>
+                            <form action="{% url 'delete_post' post.id %}">
+                                <div>
+                                    <input class="btn btn-danger" type="submit" value="Delete"><br><br>
+                                </div>
+                            </form>
+                        </div>
+                    {% endifequal %}
+                    <h6>{{ post.text_field }}</h6>
+                    Posted {{ post.post_time | timesince }} ago
+                    <br><br>
+                    {% ifnotequal post.post_owner request.user %}
+                        <div id="like-view">
+                            <i onclick="likeFunction(this)" class="fa fa-thumbs-up fa-lg" id="{{post.id}}"></i>
+                            <i onclick="unlikeFunction(this)" class="fa fa-thumbs-down fa-lg" id="{{post.id}}"></i>
+                        </div>
+                        <div class="show-like" id="show-{{ post.id }}"></div><br>
+                    {% endifnotequal %}
+
+                    <div class="comment" id="{{post.id}}"><button class="btn btn-info btn-sm">Show Comment</button></div><br>
+                        <div class="{{post.id}}" id="show-{{post.id}}" style="display: none;">
+                            {% comm post.id as the_comm %}
+                            {% for c in the_comm %}
+                                <div id="comment">
+                                <ul>
+                                    <li><strong><em>{{c.comment_user}}</em></strong> commented: <strong>{{c.post_comment}}</strong> - {{c.comment_time | timesince}} ago.</li>
+                                </ul>
+                                </div>
+                            {% empty %}
+                                <h5>Be the <strong style="color: #007BFF;"><em>First</em></strong> one to comment!</h5>
+                            {% endfor %}
+
+                            <form action="{% url 'comment' %}" method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="post_id" value={{post.id}}>
+                                <input class="form-control" type="text" name="comment" required><br>
+                                <input class="btn btn-primary" type="submit" value="Comment">
+                            </form>
+                        </div>
+                </div>
+            {% empty %}
+                <h3 style="text-align: center;">No posts to show! <strong style="color: red;">ಠ_ಠ</strong></h3>
+            {% endfor %}
+
+            <nav aria-label="...">
+                <ul class="pagination">
+                    <li class="page-item" {% if not previous_page_url %} style="display: none;" {% endif %}>
+                    <a class="page-link" href="{{ previous_page_url }}" tabindex="-1" aria-disabled="true">Previous</a>
+                    </li>
+                    
+                    {% for n in posts.page_range %}
+                        {% if posts.number == n %}
+                            <li class="page-item active" aria-current="page">
+                                <a class="page-link" href="?page={{ n }}">{{n}}<span class="sr-only">(current)</span></a>
+                            </li>                        
+                        {% elif n > posts.number and n < posts.number %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ n }}">1</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+
+                    <li class="page-item" {% if not next_page_url %} style="display: none;" {% endif %}">
+                    <a class="page-link" href="{{ next_page_url }}">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    {% else %}
+        <div style="margin: 50px; text-align: center;">
+            <h3>Welcome To <em style="color:red;">The <strong>Fake</strong> Social Network!</em></h3><br>
+            <h5>Log In/Register To See More</h5>
+        </div>
+    {% endif %}
+{% endblock %}
